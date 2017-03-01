@@ -68,3 +68,44 @@ describe('GET /todo',() => {
         .end(done);
     });
 });
+
+
+describe ('GET /todos/:id', () => {
+    it('should not return a todo with invalid ID', (done) => {
+        var invalidID = 'XXXX'
+        request(app)
+        .get(`/todos/${invalidID}`)
+        .send()
+        .expect(400)
+        .end(done);
+    });
+
+    it('should not return a todo with nonexistent ID', (done) => {
+        var nonExistentID = '58b6d7a061427540340e6562';
+        request(app)
+        .get(`/todos/${nonExistentID}`)
+        .send()
+        .expect(404)
+        .end(done);
+    });
+
+    it('should return a valid id with the user created', (done) => {
+        Todo.findOne({}).then((todo) => {
+            if (!todo) {
+                return done('Empty User database, nothing to query');
+            }
+            request(app)
+            .get(`/todos/${todo._id}`)
+            .send()
+            .expect(200)
+            .expect( (res) => {
+                console.log(res.body.todo);
+                expect(res.body.todo).toInclude({_id: todo._id});
+                done();
+            })
+            .catch( (err) => done( err));
+        })
+        .catch( (err) => done('Something went MUCH wrong', err));
+    });
+
+});
